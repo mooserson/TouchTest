@@ -54,3 +54,47 @@ function handleMove(evt) {
     }
   }
 }
+
+function handleEnd(evt) {
+  evt.preventDefault();
+  log("touchend");
+  var el = document.getElementsByTagName("canvas")[0];
+  var ctx = el.getContext("2d");
+  var touches = evt.changedTouches;
+
+  for (var i = 0; i < touches.length; i++) {
+    var color = colorForTouch(touches[i]);
+    var idx = ongoingTouchIndexById(touches[i].identifier);
+
+    if (idx >= 0) {
+      ctx.lineWidth = 4;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(ongoingTouches[idx].pageX, ongoingTouches[idx].pageY);
+      ctx.lineTo(touches[i].pageX, touches[i].pageY);
+      ctx.fillRect(touches[i].pageX - 4, touches[i].pageY - 4, 8, 8);  // and a square at the end
+      ongoingTouches.splice(idx, 1);  // remove it; we're done
+    } else {
+      log("can't figure out which touch to end");
+    }
+  }
+}
+
+function handleCancel(evt) {
+  evt.preventDefault();
+  log("touchcancel.");
+  var touches = evt.changedTouches;
+
+  for (var i = 0; i < touches.length; i++) {
+    ongoingTouches.splice(i, 1);  // remove it; we're done
+  }
+}
+
+function copyTouch(touch) {
+  return { identifier: touch.identifier, pageX: touch.pageX, pageY: touch.pageY };
+}
+
+function log(msg) {
+  var p = document.getElementById('log');
+  p.innerHTML = msg + "\n" + p.innerHTML;
+}
